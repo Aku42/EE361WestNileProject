@@ -1,6 +1,5 @@
 import numpy as np
 import csv
-import itertools as ite
 import pandas as pd
 from sklearn import metrics
 from sklearn.cross_validation import KFold
@@ -15,6 +14,10 @@ import matplotlib.cm as cm
 import seaborn as sns
 import math
 
+
+def create_year(x):
+    return x.split('-')[1]
+
 # Load dataset
 X_train = pd.read_csv('input/train.csv')
 X_test = pd.read_csv('input/test.csv')
@@ -23,26 +26,36 @@ weather = pd.read_csv('input/weather.csv')
 spray = pd.read_csv('input/spray.csv')
 
 y_train = X_train['WnvPresent']
-
+X_train['year'] = X_train.Date.apply(create_year)
 
 X_true = X_train[X_train.WnvPresent == 1]
 plot = sns.regplot('Longitude', 'Latitude', X_true, fit_reg=False)
-plotX = X_true['Longitude'].values
-plotY = X_true['Latitude'].values
+
+plotX1 = X_true['Longitude'].values
+plotY1 = X_true['Latitude'].values
 #plot.set_ylim(41.6,42.05)
 #plot.set_xlim(-87.95,-87.5)
 #fig = plot.get_figure()
 #fig.savefig('scatter1.png')
 
-#drawing the map underneath
-m = Basemap(projection='merc' ,llcrnrlat=41.599501,urcrnrlat=42.109914, llcrnrlon=-88.034279,urcrnrlon= -87.296822,lat_ts=20,resolution='f')
+# llcrnrlat,llcrnrlon,urcrnrlat,urcrnrlon
+# are the lat/lon values of the lower left and upper right corners
+# of the map.
+# lat_ts is the latitude of true scale.
+# resolution = 'c' means use crude resolution coastlines.
+m = Basemap(projection='merc' ,llcrnrlat=41.599501,urcrnrlat=42.109914,\
+            llcrnrlon=-88.034279,urcrnrlon= -87.296822,lat_ts=20,resolution='f')
 m.drawcoastlines()
-plotX, plotY = m(plotX,plotY)
+# draw coastlines.
+print "here"
+# draw a boundary around the map, fill the background.
+# this background will end up being the ocean color, since
+# the continents will be drawn on top.
+plotX, plotY = m(plotX1,plotY1)
 m.drawmapboundary(fill_color='aqua')
-m.fillcontinents(color='lightgrey', lake_color='blue', zorder=0)
+# fill continents, set lake color same as ocean color.
+m.fillcontinents(color='lightgrey',lake_color='blue', zorder=0)
 m.scatter(plotX, plotY, c='red', marker="o", alpha=.8)
 fig = plot.get_figure()
 fig.savefig('map.png')
 
-
-X_test["week"]
