@@ -26,10 +26,12 @@ y_train = X_train['WnvPresent']
 
 X_true = X_train[X_train.WnvPresent == 1]
 plot = sns.regplot('Longitude', 'Latitude', X_true, fit_reg=False)
-plot.set_ylim(41.6,42.05)
-plot.set_xlim(-87.95,-87.5)
-fig = plot.get_figure()
-fig.savefig('scatter1.png')
+plotX = X_true['Longitude'].values
+plotY = X_true['Latitude'].values
+#plot.set_ylim(41.6,42.05)
+#plot.set_xlim(-87.95,-87.5)
+#fig = plot.get_figure()
+#fig.savefig('scatter1.png')
 
 # llcrnrlat,llcrnrlon,urcrnrlat,urcrnrlon
 # are the lat/lon values of the lower left and upper right corners
@@ -40,13 +42,15 @@ m = Basemap(projection='merc' ,llcrnrlat=41.599501,urcrnrlat=42.109914,\
             llcrnrlon=-88.034279,urcrnrlon= -87.296822,lat_ts=20,resolution='f')
 m.drawcoastlines()
 # draw coastlines.
-m.drawcoastlines()
+print "here"
 # draw a boundary around the map, fill the background.
 # this background will end up being the ocean color, since
 # the continents will be drawn on top.
+plotX, plotY = m(plotX,plotY)
 m.drawmapboundary(fill_color='aqua')
 # fill continents, set lake color same as ocean color.
-m.fillcontinents(color='coral',lake_color='aqua')
-plt.show()
-
+m.fillcontinents(color='white',lake_color='blue', zorder=0)
+m.scatter(plotX, plotY, c='red', marker="o", alpha=.8)
+fig = plot.get_figure()
+fig.savefig('map.png')
 

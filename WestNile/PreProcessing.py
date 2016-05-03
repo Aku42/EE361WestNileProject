@@ -159,12 +159,17 @@ def preProcessData_MergeClosest():
             day+=dayarr[i]
         return day/7
 
+    def create_year(x):
+        return x.split('-')[1]
+
     X_train['month'] = X_train.Date.apply(create_month)
     X_train['day'] = X_train.Date.apply(create_day)
     X_train['week'] = X_train.Date.apply(create_week)
+    X_train['year'] = X_train.Date.apply(create_year)
     X_test['month'] = X_test.Date.apply(create_month)
     X_test['day'] = X_test.Date.apply(create_day)
     X_test['week'] = X_test.Date.apply(create_week)
+    X_test['year'] = X_train.Date.apply(create_year)
 
     X_true = X_train[X_train.WnvPresent == 1]
     plot = sns.regplot('Longitude', 'Latitude', X_true, fit_reg=False)
@@ -255,7 +260,7 @@ def preProcessData_MergeClosest():
 
 
 if __name__ == '__main__':
-    X_train, y_train, X_test, sample = preProcessData_MergeClosest()
+    X_train, y_train, X_test, sample = preProcessData()
     gp = GaussianProcess(regr='linear')
     #gp.fit(X_train, y_train)
     #y_pred = gp.predict(X_test)
