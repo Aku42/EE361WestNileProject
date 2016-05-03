@@ -57,12 +57,19 @@ def preProcessData():
             day+=dayarr[i]
         return day/7
 
+    def create_year(x):
+        return x.split('-')[0]
+
     X_train['month'] = X_train.Date.apply(create_month)
     X_train['day'] = X_train.Date.apply(create_day)
     X_train['week'] = X_train.Date.apply(create_week)
+    X_train['year'] = X_train.Date.apply(create_year)
     X_test['month'] = X_test.Date.apply(create_month)
     X_test['day'] = X_test.Date.apply(create_day)
     X_test['week'] = X_test.Date.apply(create_week)
+    X_test['year'] = X_train.Date.apply(create_year)
+
+    print X_train.head(5)
 
     X_true = X_train[X_train.WnvPresent == 1]
     plot = sns.regplot('Longitude', 'Latitude', X_true, fit_reg=False)
@@ -160,7 +167,7 @@ def preProcessData_MergeClosest():
         return day/7
 
     def create_year(x):
-        return x.split('-')[1]
+        return x.split('-')[0]
 
     X_train['month'] = X_train.Date.apply(create_month)
     X_train['day'] = X_train.Date.apply(create_day)
@@ -170,6 +177,8 @@ def preProcessData_MergeClosest():
     X_test['day'] = X_test.Date.apply(create_day)
     X_test['week'] = X_test.Date.apply(create_week)
     X_test['year'] = X_train.Date.apply(create_year)
+
+    print X_train.head(5)
 
     X_true = X_train[X_train.WnvPresent == 1]
     plot = sns.regplot('Longitude', 'Latitude', X_true, fit_reg=False)
