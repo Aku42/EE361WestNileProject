@@ -125,6 +125,13 @@ def preProcessData_MergeClosest():
 
     weather = weather.drop('CodeSum', axis=1)
 
+    # replace some missing values and T with -1
+    weather = weather.replace('M', -1)
+    weather = weather.replace('-', -1)
+    weather = weather.replace('T', -1)
+    weather = weather.replace(' T', -1)
+    weather = weather.replace('  T', -1)
+
     # Split station 1 and 2 and join horizontally
     weather_stn1 = weather[weather['Station']==1]
     weather_stn2 = weather[weather['Station']==2]
@@ -135,13 +142,6 @@ def preProcessData_MergeClosest():
     weather_stn2.loc[:,'Longitude'] = -87.752
     #weather_stn2 = weather_stn2.drop('Station', axis=1)
     weather = weather_stn1.merge(weather_stn2, on='Date')
-
-    # replace some missing values and T with -1
-    weather = weather.replace('M', -1)
-    weather = weather.replace('-', -1)
-    weather = weather.replace('T', -1)
-    weather = weather.replace(' T', -1)
-    weather = weather.replace('  T', -1)
 
     # Functions to extract month and day from dataset
     # You can also use parse_dates of Pandas.
@@ -243,7 +243,9 @@ def preProcessData_MergeClosest():
     mergedWeather = merge_closest(X_train, weather_stn1, weather_stn2,on_col='Date', x_col='Latitude', y_col='Longitude')
     X_train = X_train.merge(mergedWeather, on='Date')
     print X_train.head(5)
+    mergedWeather = merge_closest(X_test, weather_stn1, weather_stn2,on_col='Date', x_col='Latitude', y_col='Longitude')
     X_test = X_test.merge(mergedWeather, on='Date')
+    print X_train.head(5)
     X_train = X_train.drop(['Date'], axis = 1)
     X_test = X_test.drop(['Date'], axis = 1)
 
