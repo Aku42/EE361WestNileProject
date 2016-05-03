@@ -1,5 +1,6 @@
 import numpy as np
 import csv
+import itertools as ite
 import pandas as pd
 from sklearn import metrics
 from sklearn.cross_validation import KFold
@@ -33,24 +34,15 @@ plotY = X_true['Latitude'].values
 #fig = plot.get_figure()
 #fig.savefig('scatter1.png')
 
-# llcrnrlat,llcrnrlon,urcrnrlat,urcrnrlon
-# are the lat/lon values of the lower left and upper right corners
-# of the map.
-# lat_ts is the latitude of true scale.
-# resolution = 'c' means use crude resolution coastlines.
-m = Basemap(projection='merc' ,llcrnrlat=41.599501,urcrnrlat=42.109914,\
-            llcrnrlon=-88.034279,urcrnrlon= -87.296822,lat_ts=20,resolution='f')
+#drawing the map underneath
+m = Basemap(projection='merc' ,llcrnrlat=41.599501,urcrnrlat=42.109914, llcrnrlon=-88.034279,urcrnrlon= -87.296822,lat_ts=20,resolution='f')
 m.drawcoastlines()
-# draw coastlines.
-print "here"
-# draw a boundary around the map, fill the background.
-# this background will end up being the ocean color, since
-# the continents will be drawn on top.
 plotX, plotY = m(plotX,plotY)
 m.drawmapboundary(fill_color='aqua')
-# fill continents, set lake color same as ocean color.
-m.fillcontinents(color='white',lake_color='blue', zorder=0)
+m.fillcontinents(color='lightgrey', lake_color='blue', zorder=0)
 m.scatter(plotX, plotY, c='red', marker="o", alpha=.8)
 fig = plot.get_figure()
 fig.savefig('map.png')
 
+
+X_test["week"]
