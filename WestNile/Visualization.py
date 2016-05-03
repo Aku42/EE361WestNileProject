@@ -6,6 +6,7 @@ from sklearn.cross_validation import KFold
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.gaussian_process import GaussianProcess
+from sklearn.linear_model import LinearRegression
 import matplotlib as plt
 import seaborn as sns
 import math
@@ -18,7 +19,8 @@ sample = pd.read_csv('input/sampleSubmission.csv')
 weather = pd.read_csv('input/weather.csv')
 spray = pd.read_csv('input/spray.csv')
 
-y_train = X_train.WnvPresent.values
+y_train = X_train['WnvPresent']
+
 weather = weather.drop('CodeSum', axis=1)
 
 # Split station 1 and 2 and join horizontally
@@ -30,7 +32,7 @@ weather_stn1.loc[:,'Longitude'] = -87.933
 weather_stn2.loc[:,'Latitude'] = 41.786
 weather_stn2.loc[:,'Longitude'] = -87.752
 #weather_stn2 = weather_stn2.drop('Station', axis=1)
-weather = weather_stn1.merge(weather_stn2)
+weather = weather_stn1.merge(weather_stn2, on='Date')
 
 # replace some missing values and T with -1
 weather = weather.replace('M', -1)
@@ -47,16 +49,20 @@ def create_month(x):
 def create_day(x):
     return x.split('-')[2]
 
+def create_week(x):
+    month = int(create_month(x))
+    day = int(create_day(x))
+    dayarr = [31,28,31,30,31,30,31,31,30,31,30,31]
+    for i in [0,month-1]:
+        day+=dayarr[i]
+    return day/7
+
 X_train['month'] = X_train.Date.apply(create_month)
 X_train['day'] = X_train.Date.apply(create_day)
+X_train['week'] = X_train.Date.apply(create_week)
 X_test['month'] = X_test.Date.apply(create_month)
 X_test['day'] = X_test.Date.apply(create_day)
-
-# Add integer latitude/longitude columns
-X_train['Lat_int'] = X_train.Latitude.apply(int)
-X_train['Long_int'] = X_train.Longitude.apply(int)
-X_test['Lat_int'] = X_test.Latitude.apply(int)
-X_test['Long_int'] = X_test.Longitude.apply(int)
+X_test['week'] = X_test.Date.apply(create_week)
 
 X_true = X_train[X_train.WnvPresent == 1]
 plot = sns.regplot('Longitude', 'Latitude', X_true, fit_reg=False)
@@ -66,8 +72,38 @@ fig = plot.get_figure()
 fig.savefig('scatter1.png')
 
 # drop address columns
-X_train = X_train.drop(['Address', 'AddressNumberAndStreet', 'WnvPresent'], axis = 1)
-X_test = X_test.drop(['Id', 'Address', 'AddressNumberAndStreet'], axis = 1)
+X_train = X_train.drop(['Address', 'AddressNumberAndStreet', 'WnvPresent', 'Street', 'NumMosquitos',s 'Trap'], axis = 1)
+X_test = X_test.drop(['Id', 'Address', 'AddressNumberAndStreet', 'Street', 'Trap'], axis = 1)
+
+#speciesNames = {}
+#x = 0
+#for i in X_train.Species.values:
+#    if i not in speciesNames:
+#        speciesNames[i]=2*x
+#        print i
+#        x+=1
+
+# replace mosquito species with int
+#X_train['Species'] = X_train['Species'].map(speciesNames)
+#X_test['Species'] = X_test['Species'].map(speciesNames)
+X_train = X_train.replace('CULEX RESTUANS',2)
+X_train = X_train.replace('CULEX PIPIENS/RESTUANS',3)
+X_train = X_train.replace('CULEX PIPIENS',4)
+X_train = X_train.replace('CULEX SALINARIUS',6)
+X_train = X_train.replace('CULEX TERRITANS',8)
+X_train = X_train.replace('CULEX TARSALIS',10)
+X_train = X_train.replace('CULEX ERRATICUS',12)
+X_train = X_train.replace('UNSPECIFIED CULEX',0)
+
+X_test = X_test.replace('CULEX RESTUANS',2)
+X_test = X_test.replace('CULEX PIPIENS/RESTUANS',3)
+X_test = X_test.replace('CULEX PIPIENS',4)
+X_test = X_test.replace('CULEX SALINARIUS',6)
+X_test = X_test.replace('CULEX TERRITANS',8)
+X_test = X_test.replace('CULEX TARSALIS',10)
+X_test = X_test.replace('CULEX ERRATICUS',12)
+X_test = X_test.replace('UNSPECIFIED CULEX',0)
+
 
 def merge_closest(DF1, DF2, div_col, div2_val, div3_val, on_col, x_col, y_col):
     #matrix1 = DF1.values
@@ -90,7 +126,7 @@ def merge_closest(DF1, DF2, div_col, div2_val, div3_val, on_col, x_col, y_col):
         #if i<5:
         #    print "DF2: " + str(df2_dist) + " DF3: " +str(df3_dist)
         #    i+=1
-        print type(df2_row)
+        #print type(df2_row)
         if df2_dist<=df3_dist:
             tempDF=tempDF[DF2[on_col]!=df1_date & DF2[div_col]!=div3_val]
         else:
@@ -100,15 +136,18 @@ def merge_closest(DF1, DF2, div_col, div2_val, div3_val, on_col, x_col, y_col):
 
 
 # Merge with weather data
-merge_closest(X_train, weather, div_col='Station', div2_val=1, div3_val=2,on_col='Date', x_col='Latitude', y_col='Longitude')
+#merge_closest(X_train, weather, div_col='Station', div2_val=1, div3_val=2,on_col='Date', x_col='Latitude', y_col='Longitude')
 X_train = X_train.merge(weather, on='Date')
 X_test = X_test.merge(weather, on='Date')
 X_train = X_train.drop(['Date'], axis = 1)
 X_test = X_test.drop(['Date'], axis = 1)
 
-#gp = GaussianProcess(regr='constant')
-#gp.fit(X_train, y_train)
-#y_pred = gp.predict(X_test)
+print X_train.columns.values
+print X_test.columns.values
+
+gp = LinearRegression()
+gp.fit(X_train, y_train)
+y_pred = gp.predict(X_test)
 
 #predictions = gp.predict(X_test)[:,1]
 #sample['WnvPresent'] = predictions
