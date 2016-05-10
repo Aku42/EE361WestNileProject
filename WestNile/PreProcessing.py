@@ -82,17 +82,6 @@ def preProcessData():
     X_train = X_train.drop(['Address', 'AddressNumberAndStreet', 'WnvPresent', 'Street', 'NumMosquitos', 'Trap'], axis = 1)
     X_test = X_test.drop(['Id', 'Address', 'AddressNumberAndStreet', 'Street', 'Trap'], axis = 1)
 
-    #speciesNames = {}
-    #x = 0
-    #for i in X_train.Species.values:
-    #    if i not in speciesNames:
-    #        speciesNames[i]=2*x
-    #        print i
-    #        x+=1
-
-    # replace mosquito species with int
-    #X_train['Species'] = X_train['Species'].map(speciesNames)
-    #X_test['Species'] = X_test['Species'].map(speciesNames)
     X_train = X_train.replace('CULEX RESTUANS',2)
     X_train = X_train.replace('CULEX PIPIENS/RESTUANS',3)
     X_train = X_train.replace('CULEX PIPIENS',4)
@@ -178,8 +167,6 @@ def preProcessData_MergeClosest():
     X_test['week'] = X_test.Date.apply(create_week)
     X_test['year'] = X_train.Date.apply(create_year)
 
-    print X_train.head(5)
-
     X_true = X_train[X_train.WnvPresent == 1]
     plot = sns.regplot('Longitude', 'Latitude', X_true, fit_reg=False)
     plot.set_ylim(41.6,42.05)
@@ -209,7 +196,7 @@ def preProcessData_MergeClosest():
     X_train = X_train.replace('CULEX TERRITANS',8)
     X_train = X_train.replace('CULEX TARSALIS',10)
     X_train = X_train.replace('CULEX ERRATICUS',12)
-    X_train = X_train.replace('UNSPECIFIED CULEX',0)
+    X_train = X_train.replace('UNSPECIFIED CULEX',-1)
 
     X_test = X_test.replace('CULEX RESTUANS',2)
     X_test = X_test.replace('CULEX PIPIENS/RESTUANS',3)
@@ -218,7 +205,7 @@ def preProcessData_MergeClosest():
     X_test = X_test.replace('CULEX TERRITANS',8)
     X_test = X_test.replace('CULEX TARSALIS',10)
     X_test = X_test.replace('CULEX ERRATICUS',12)
-    X_test = X_test.replace('UNSPECIFIED CULEX',0)
+    X_test = X_test.replace('UNSPECIFIED CULEX',-1)
 
 
     def merge_closest(DF1, DF2, DF3, on_col, x_col, y_col):
@@ -240,10 +227,8 @@ def preProcessData_MergeClosest():
             df3_y=df3_row[y_col]
             df2_dist=math.hypot(df2_x-df1_x, df2_y-df1_y)
             df3_dist=math.hypot(df3_x-df1_x, df3_y-df1_y)
-            #if i<5:
-            #    print "DF2: " + str(df2_dist) + " DF3: " +str(df3_dist)
-            #    i+=1
-            #print type(df2_row)
+            if i%100==0:
+                print "At row %s" % i
             if df2_dist<=df3_dist:
                 tempDF[tempDF[on_col]==df1_date] = np.array(df2_row)
             else:
@@ -259,7 +244,7 @@ def preProcessData_MergeClosest():
     print X_train.head(5)
     mergedWeather = merge_closest(X_test, weather_stn1, weather_stn2,on_col='Date', x_col='Latitude', y_col='Longitude')
     X_test = X_test.merge(mergedWeather, on='Date')
-    print X_train.head(5)
+    print X_test.head(5)
     X_train = X_train.drop(['Date'], axis = 1)
     X_test = X_test.drop(['Date'], axis = 1)
 
@@ -267,14 +252,25 @@ def preProcessData_MergeClosest():
 
 
 
-
 if __name__ == '__main__':
-    X_train, y_train, X_test, sample = preProcessData()
-    gp = GaussianProcess(regr='linear')
-    #gp.fit(X_train, y_train)
-    #y_pred = gp.predict(X_test)
+    X_train, y_train, X_test, sample = preProcessData_MergeClosest()
+    X_train.drop(['Latitude_y','Longitude_y'], axis = 1)
+    X_train.rename(columns={'Latitude_x': 'Latitude', 'Longitude_x': 'Longitude'}, inplace=True)
+    X_test.drop(['Latitude_y','Longitude_y'], axis = 1)
+    X_train['id'] = range(0, len(X_train)-1)
+    krig_train = X_train.loc(['id','Latitude','Longitude'])
+    krig_test = X_test.loc(['id','Latitude','Longitude'])
+    log_test = X_test.drop(['Latitude','Longitude'],axis=-1)
+    log_train = X_train.drop(['Latitude','Longitude'],axis=-1)
+    gp = LinearRegression()
+    gp.fit(log_train, y_train)
+    temp_pred = gp.predict(log_test)
+
+    gp = GaussianProcess()
+    gp.fit(krig_train,temp_pred)
+    predictions = gp.predict(krig_test)
 
     #predictions = gp.predict(X_test)
-    #sample['WnvPresent'] = predictions
-    #sample.to_csv('firstGP.csv', index=False)
+    sample['WnvPresent'] = predictions
+    sample.to_csv('firstGP.csv', index=False)
 
