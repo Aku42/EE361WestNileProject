@@ -18,12 +18,19 @@ def preProcessData():
     X_train = pd.read_csv('input/train.csv', parse_dates=['Date'])
     X_test = pd.read_csv('input/test.csv', parse_dates=['Date'])
     sample = pd.read_csv('input/sampleSubmission.csv')
-    weather = pd.read_csv('input/weather.csv', parse_dates=['Date'])
+    weather = pd.read_csv('input/weather.csv')
     spray = pd.read_csv('input/spray.csv', parse_dates=['Date'])
 
     y_train = X_train['WnvPresent']
 
     weather = weather.drop('CodeSum', axis=1)
+
+    # # replace some missing values and T with -1
+    # weather = weather.replace('M', -1)
+    # weather = weather.replace('-', -1)
+    # weather = weather.replace('T', -1)
+    # weather = weather.replace(' T', -1)
+    # weather = weather.replace('  T', -1)
 
     # Split station 1 and 2 and join horizontally
     weather_stn1 = weather[weather['Station']==1]
@@ -35,13 +42,6 @@ def preProcessData():
     weather_stn2.loc[:,'Longitude'] = -87.752
     #weather_stn2 = weather_stn2.drop('Station', axis=1)
     weather = weather_stn1.merge(weather_stn2, on='Date')
-
-    # replace some missing values and T with -1
-    weather = weather.replace('M', -1)
-    weather = weather.replace('-', -1)
-    weather = weather.replace('T', -1)
-    weather = weather.replace(' T', -1)
-    weather = weather.replace('  T', -1)
 
     # Functions to extract month and day from dataset
     # You can also use parse_dates of Pandas.
@@ -123,12 +123,17 @@ def preProcessData_MergeClosest():
 
     weather = weather.drop('CodeSum', axis=1)
 
-    # replace some missing values and T with -1
-    weather = weather.replace('M', -1)
-    weather = weather.replace('-', -1)
-    weather = weather.replace('T', -1)
-    weather = weather.replace(' T', -1)
-    weather = weather.replace('  T', -1)
+    weather['Date'] = weather['Date'].map(lambda x: str(x).split()[0])
+
+    # # replace some missing values and T with -1
+    # weather = weather.replace('M', -1)
+    # weather = weather.replace('-', -1)
+    # weather = weather.replace('T', -1)
+    # weather = weather.replace(' T', -1)
+    # weather = weather.replace('  T', -1)
+
+    # drop columns with NaNs
+    weather = weather.drop(['Depart', 'Sunrise', 'Sunset', 'Depth', 'Water1', 'SnowFall'], axis = 1)
 
     # Split station 1 and 2
     weather_stn1 = weather[weather['Station']==1]
@@ -170,13 +175,16 @@ def preProcessData_MergeClosest():
 
     X_train['Year'] = X_train['Date'].map(lambda x: x.year)
     X_train['Week'] = X_train['Date'].map(lambda x: x.week)
-    X_train['Day'] = X_train['Date'].map(lambda x: x.day)
+    X_train['Day'] = X_train['Date'].map(lambda x: 7*x.week+x.day)
+    X_train['Date'] = X_train['Date'].map(lambda x: str(x).split()[0])
 
     X_test['Year'] = X_test['Date'].map(lambda x: x.year)
     X_test['Week'] = X_test['Date'].map(lambda x: x.week)
-    X_test['Day'] = X_test['Date'].map(lambda x: x.day)
+    X_test['Day'] = X_test['Date'].map(lambda x: 7*x.week+x.day)
+    X_test['Date'] = X_test['Date'].map(lambda x: str(x).split()[0])
 
     print X_train.head(5)
+    print weather.head(5)
 
     # drop address columns
     X_train = X_train.drop(['Address', 'AddressNumberAndStreet', 'WnvPresent', 'Street', 'NumMosquitos', 'Trap'], axis = 1)
@@ -196,11 +204,6 @@ def preProcessData_MergeClosest():
     #X_train['Trap'] = lbl.transform(X_train['Trap'].values)
     #X_test['Trap'] = lbl.transform(X_test['Trap'].values)
 
-    # drop columns with NaNs
-    X_train = X_train.drop(['Depart', 'Sunrise', 'Sunset', 'Depth', 'Water1', 'SnowFall'], axis = 1)
-    X_test = X_test.drop(['Depart', 'Sunrise', 'Sunset', 'Depth', 'Water1', 'SnowFall'], axis = 1)
-
-
     def merge_closest(DF1, DF2, DF3, on_col, x_col, y_col):
         #matrix1 = DF1.values
         #matrix2 = DF2.values
@@ -211,7 +214,10 @@ def preProcessData_MergeClosest():
         print "NumRows = %s" % len(DF1)
         for index,row in DF1.iterrows():
             df1_date = row[on_col]
+            #print df1_date
+            #print ""
             df2_row = DF2[(DF2[on_col]==df1_date)]
+            #print df2_row[on_col]
             df3_row = DF3[(DF3[on_col]==df1_date)]
             df1_x=row[x_col]
             df1_y=row[y_col]
@@ -235,16 +241,13 @@ def preProcessData_MergeClosest():
     # Merge with weather data
     mergedWeather = merge_closest(X_train, weather_stn1, weather_stn2,on_col='Date', x_col='Latitude', y_col='Longitude')
     X_train = X_train.merge(mergedWeather, on='Date')
-    print X_train.head(5)
     mergedWeather = merge_closest(X_test, weather_stn1, weather_stn2,on_col='Date', x_col='Latitude', y_col='Longitude')
     X_test = X_test.merge(mergedWeather, on='Date')
-    print X_test.head(5)
     X_train = X_train.drop(['Date'], axis = 1)
     X_test = X_test.drop(['Date'], axis = 1)
 
+
     return X_train, y_train, X_test, sample
-
-
 
 if __name__ == '__main__':
     X_train, y_train, X_test, sample = preProcessData_MergeClosest()

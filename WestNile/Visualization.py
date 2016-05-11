@@ -54,30 +54,30 @@ plotY4 = X_true[X_true.Year == 2013]['Latitude'].values
 # of the map.
 # lat_ts is the latitude of true scale.
 # resolution = 'c' means use crude resolution coastlines.
-# m = Basemap(projection='merc', llcrnrlat=41.599501, urcrnrlat=42.109914, llcrnrlon=-88.034279, urcrnrlon=-87.296822,
-#             lat_ts=20, resolution='f')
-# m.drawcoastlines()
-# # draw coastlines.
-# # draw a boundary around the map, fill the background.
-# # this background will end up being the ocean color, since
-# # the continents will be drawn on top.
-# plotX1, plotY1 = m(plotX1, plotY1)
-# plotX2, plotY2 = m(plotX2, plotY2)
-# plotX3, plotY3 = m(plotX3, plotY3)
-# plotX4, plotY4 = m(plotX4, plotY4)
-# m.drawmapboundary(fill_color='blue')
-# # fill continents, set lake color same as ocean color.
-# m.fillcontinents(color='lightgrey',lake_color='blue', zorder=0)
-# m.drawparallels(np.arange(41.5, 42.5, .1))
-# m.drawmeridians(np.arange(-88., -87.3, .1))
-# m.scatter(plotX1, plotY1, c='yellow', marker="o", alpha=1)
-# m.scatter(plotX2, plotY2, c='purple', marker="o", alpha=1)
-# m.scatter(plotX3, plotY3, c='green', marker="o", alpha=1)
-# m.scatter(plotX4, plotY4, c='red', marker="o", alpha=1)
-# fig = plot.get_figure()
-# fig.savefig('map.png')
-#
-# print("Here")
+m = Basemap(projection='merc', llcrnrlat=41.599501, urcrnrlat=42.109914, llcrnrlon=-88.034279, urcrnrlon=-87.296822,
+            lat_ts=20, resolution='f')
+m.drawcoastlines()
+# draw coastlines.
+# draw a boundary around the map, fill the background.
+# this background will end up being the ocean color, since
+# the continents will be drawn on top.
+plotX1, plotY1 = m(plotX1, plotY1)
+plotX2, plotY2 = m(plotX2, plotY2)
+plotX3, plotY3 = m(plotX3, plotY3)
+plotX4, plotY4 = m(plotX4, plotY4)
+m.drawmapboundary(fill_color='blue')
+# fill continents, set lake color same as ocean color.
+m.fillcontinents(color='lightgrey',lake_color='blue', zorder=0)
+m.drawparallels(np.arange(41.5, 42.5, .1))
+m.drawmeridians(np.arange(-88., -87.3, .1))
+m.scatter(plotX1, plotY1, c='red', marker="o", alpha=1)
+m.scatter(plotX2, plotY2, c='purple', marker="o", alpha=1)
+m.scatter(plotX3, plotY3, c='green', marker="o", alpha=1)
+m.scatter(plotX4, plotY4, c='orange', marker="o", alpha=1)
+fig = plot.get_figure()
+fig.savefig('map.png')
+
+print("Here")
 
 # m = Basemap(projection='merc', llcrnrlat=41.599501, urcrnrlat=42.109914, llcrnrlon=-88.034279, urcrnrlon=-87.296822,
 #             lat_ts=20, resolution='f')
@@ -106,7 +106,7 @@ weekly['2011'] = X_2011.groupby("Week").sum().ix[:,['WnvPresent']]
 weekly['2013'] = X_2013.groupby("Week").sum().ix[:,['WnvPresent']]
 for i in weekly:
     weekly[i].rename(columns={'WnvPresent': i}, inplace=True)
-ax = weekly['2007'].plot.line(title='Trap infection rate', figsize=(10, 6))
+ax = weekly['2007'].plot.line(title='Trap infection rate', figsize=(10, 6),c="red")
 ax = weekly['2009'].plot.line(ax=ax)
 ax = weekly['2011'].plot.line(ax=ax)
 ax = weekly['2013'].plot.line(ax=ax, c="orange")
