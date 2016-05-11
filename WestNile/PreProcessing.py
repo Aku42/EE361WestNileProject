@@ -125,12 +125,12 @@ def preProcessData_MergeClosest():
 
     weather['Date'] = weather['Date'].map(lambda x: str(x).split()[0])
 
-    # # replace some missing values and T with -1
-    # weather = weather.replace('M', -1)
-    # weather = weather.replace('-', -1)
-    # weather = weather.replace('T', -1)
-    # weather = weather.replace(' T', -1)
-    # weather = weather.replace('  T', -1)
+    # replace some missing values and T with -1
+    weather = weather.replace('M', -1)
+    weather = weather.replace('-', -1)
+    weather = weather.replace('T', -1)
+    weather = weather.replace(' T', -1)
+    weather = weather.replace('  T', -1)
 
     # drop columns with NaNs
     weather = weather.drop(['Depart', 'Sunrise', 'Sunset', 'Depth', 'Water1', 'SnowFall'], axis = 1)

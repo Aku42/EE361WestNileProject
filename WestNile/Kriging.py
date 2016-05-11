@@ -1,4 +1,5 @@
 from PreProcessing import *
+import pyKriging
 
 if __name__ == '__main__':
     X_train = pd.read_csv('predata/trainmerged.csv')
@@ -20,10 +21,12 @@ if __name__ == '__main__':
 
     sample['WnvPresent'] = temp_pred
     sample.to_csv('lograw.csv', index=False)
+    print "Here1"
 
-    gp = GaussianProcess(theta0=1e4)
+    gp = GaussianProcess(theta0=1e10)
+    #gp = pyKriging.kriging(np.array(krig_train), np.array(y_train))
     print "Here"
-    gp.fit(krig_train, y_train)
+    gp.fit(krig_train,y_train)
     krig1 = krig_test.loc[:len(krig_test)/4,:]
     predictions = gp.predict(krig1)
     print "Here"
