@@ -6,18 +6,20 @@ from sklearn.cross_validation import KFold
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.gaussian_process import GaussianProcess
-from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LinearRegression, LogisticRegression
 import matplotlib as plt
 import seaborn as sns
 import math, copy, datetime
 
 def preProcessData():
     # Load dataset
-    X_train = pd.read_csv('input/train.csv', parse_dates="Date")
-    X_test = pd.read_csv('input/test.csv', parse_dates="Date")
+    X_train = pd.read_csv('input/train.csv', parse_dates=['Date'])
+    X_test = pd.read_csv('input/test.csv', parse_dates=['Date'])
     sample = pd.read_csv('input/sampleSubmission.csv')
-    weather = pd.read_csv('input/weather.csv', parse_dates="Date")
-    spray = pd.read_csv('input/spray.csv', parse_dates="Date")
+    weather = pd.read_csv('input/weather.csv', parse_dates=['Date'])
+    spray = pd.read_csv('input/spray.csv', parse_dates=['Date'])
 
     y_train = X_train['WnvPresent']
 
@@ -111,11 +113,11 @@ def preProcessData():
 
 def preProcessData_MergeClosest():
     # Load dataset
-    X_train = pd.read_csv('input/train.csv', parse_dates="Date")
-    X_test = pd.read_csv('input/test.csv', parse_dates="Date")
+    X_train = pd.read_csv('input/train.csv', parse_dates=['Date'])
+    X_test = pd.read_csv('input/test.csv', parse_dates=['Date'])
     sample = pd.read_csv('input/sampleSubmission.csv')
-    weather = pd.read_csv('input/weather.csv', parse_dates="Date")
-    spray = pd.read_csv('input/spray.csv', parse_dates="Date")
+    weather = pd.read_csv('input/weather.csv', parse_dates=['Date'])
+    spray = pd.read_csv('input/spray.csv', parse_dates=['Date'])
 
     y_train = X_train['WnvPresent']
 
@@ -128,16 +130,13 @@ def preProcessData_MergeClosest():
     weather = weather.replace(' T', -1)
     weather = weather.replace('  T', -1)
 
-    # Split station 1 and 2 and join horizontally
+    # Split station 1 and 2
     weather_stn1 = weather[weather['Station']==1]
     weather_stn2 = weather[weather['Station']==2]
-    #weather_stn1 = weather_stn1.drop('Station', axis=1)
     weather_stn1.loc[:,'Latitude'] = 41.995
     weather_stn1.loc[:,'Longitude'] = -87.933
     weather_stn2.loc[:,'Latitude'] = 41.786
     weather_stn2.loc[:,'Longitude'] = -87.752
-    #weather_stn2 = weather_stn2.drop('Station', axis=1)
-    weather = weather_stn1.merge(weather_stn2, on='Date')
 
     X_train['Id'] = range(0, len(X_train))
 
@@ -169,11 +168,21 @@ def preProcessData_MergeClosest():
     # X_test['week'] = X_test.Date.apply(create_week)
     # X_test['year'] = X_train.Date.apply(create_year)
 
+    X_train['Year'] = X_train['Date'].map(lambda x: x.year)
+    X_train['Week'] = X_train['Date'].map(lambda x: x.week)
+    X_train['Day'] = X_train['Date'].map(lambda x: x.day)
+
+    X_test['Year'] = X_test['Date'].map(lambda x: x.year)
+    X_test['Week'] = X_test['Date'].map(lambda x: x.week)
+    X_test['Day'] = X_test['Date'].map(lambda x: x.day)
+
+    print X_train.head(5)
+
     # drop address columns
     X_train = X_train.drop(['Address', 'AddressNumberAndStreet', 'WnvPresent', 'Street', 'NumMosquitos', 'Trap'], axis = 1)
     X_test = X_test.drop(['Address', 'AddressNumberAndStreet', 'Street', 'Trap'], axis = 1)
 
-    # Convert categorical data to numbers
+    # Convert Species Names to Numbers
     lbl = LabelEncoder()
     lbl.fit(list(X_train['Species'].values) + list(X_test['Species'].values))
     X_train['Species'] = lbl.transform(X_train['Species'].values)
@@ -187,9 +196,9 @@ def preProcessData_MergeClosest():
     #X_train['Trap'] = lbl.transform(X_train['Trap'].values)
     #X_test['Trap'] = lbl.transform(X_test['Trap'].values)
 
-    # drop columns with -1s
-    X_train = X_train.ix[:, (X_train != -1).any(axis=0)]
-    X_test = X_test.ix[:, (X_test != -1).any(axis=0)]
+    # drop columns with NaNs
+    X_train = X_train.drop(['Depart', 'Sunrise', 'Sunset', 'Depth', 'Water1', 'SnowFall'], axis = 1)
+    X_test = X_test.drop(['Depart', 'Sunrise', 'Sunset', 'Depth', 'Water1', 'SnowFall'], axis = 1)
 
 
     def merge_closest(DF1, DF2, DF3, on_col, x_col, y_col):
@@ -238,33 +247,10 @@ def preProcessData_MergeClosest():
 
 
 if __name__ == '__main__':
-    #X_train, y_train, X_test, sample = preProcessData_MergeClosest()
-    #X_train = X_train.drop(['Latitude_y','Longitude_y'], axis = 1)
-    #X_train.rename(columns={'Latitude_x': 'Latitude', 'Longitude_x': 'Longitude'}, inplace=True)
-    #X_test.rename(columns={'Latitude_x': 'Latitude', 'Longitude_x': 'Longitude'}, inplace=True)
-    #X_test= X_test.drop(['Latitude_y','Longitude_y'], axis = 1)
-    #X_train.to_csv('predata/trainmerged.csv', index=False)
-    #X_test.to_csv('predata/testmerged.csv', index=False)
-    X_train = pd.read_csv('predata/trainmerged.csv', parse_dates="Date")
-    X_test = pd.read_csv('predata/testmerged.csv', parse_dates="Date")
-    sample = pd.read_csv('input/sampleSubmission.csv')
-    y_train =pd.read_csv('input/train.csv', parse_dates="Date")['WnvPresent']
-    krig_train = X_train.ix[:,['Id','Latitude','Longitude']]
-    krig_test = X_test.ix[:,['Id','Latitude','Longitude']]
-    log_test = X_test.drop(['Latitude','Longitude'],axis=1)
-    log_train = X_train.drop(['Latitude','Longitude'],axis=1)
-    gp = LinearRegression(theta0=1e-2)
-    gp.fit(log_train, y_train)
-    train_pred = gp.predict(X=log_train)
-    temp_pred = gp.predict(X=log_test)
-    krig_train['logpred']=train_pred
-    krig_test['logpred']=temp_pred
-
-    gp = GaussianProcess(theta0=1e12)
-    gp.fit(krig_train, y_train)
-    predictions = gp.predict(krig_test)
-
-    #predictions = gp.predict(X_test)
-    sample['WnvPresent'] = predictions
-    sample.to_csv('firstGP.csv', index=False)
-
+    X_train, y_train, X_test, sample = preProcessData_MergeClosest()
+    X_train = X_train.drop(['Latitude_y','Longitude_y'], axis = 1)
+    X_train.rename(columns={'Latitude_x': 'Latitude', 'Longitude_x': 'Longitude'}, inplace=True)
+    X_test.rename(columns={'Latitude_x': 'Latitude', 'Longitude_x': 'Longitude'}, inplace=True)
+    X_test= X_test.drop(['Latitude_y','Longitude_y'], axis = 1)
+    X_train.to_csv('predata/trainmerged.csv', index=False)
+    X_test.to_csv('predata/testmerged.csv', index=False)
