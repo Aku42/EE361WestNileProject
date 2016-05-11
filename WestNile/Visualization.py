@@ -14,23 +14,6 @@ import matplotlib.cm as cm
 import seaborn as sns
 import math
 
-def create_month(x):
-    return x.split('-')[1]
-
-def create_day(x):
-    return x.split('-')[2]
-
-
-def create_week(x):
-        month = int(create_month(x))
-        day = int(create_day(x))
-        dayarr = [31,28,31,30,31,30,31,31,30,31,30,31]
-        for i in [0,month-1]:
-            day+=dayarr[i]
-        return day/7
-
-def create_year(x):
-    return x.split('-')[0]
 
 
 # Load dataset
@@ -44,37 +27,26 @@ y_train = X_train['WnvPresent']
 X_train['Year'] = X_train['Date'].map(lambda x: x.year)
 X_train['Week'] = X_train['Date'].map(lambda x: x.week)
 
-X_true = X_train[X_train.WnvPresent == 1]
+X_true = X_train[X_train.WnvPresent >= 0]
 plot = sns.regplot('Longitude', 'Latitude', X_true, fit_reg=False)
 
-plotX1 = X_true['Longitude'].values
-plotY1 = X_true['Latitude'].values
-<<<<<<< HEAD
+plotX = X_true['Longitude'].values
+plotY = X_true['Latitude'].values
 
-#plotX1 = X_true[X_true.Year == '2007']['Longitude'].values
-#plotY1 = X_true[X_true.Year == '2007']['Latitude'].values
-
-
-#plotX2 = X_true[X_true.Year == '2009']['Longitude'].values
-#plotY2 = X_true[X_true.Year == '2009']['Latitude'].values
+plotX1 = X_true[X_true.Year == 2007]['Longitude'].values
+plotY1 = X_true[X_true.Year == 2007]['Latitude'].values
 
 
-#plotX3 = X_true[X_true.Year == '2011']['Longitude'].values
-#plotY3 = X_true[X_true.Year == '2011']['Latitude'].values
+plotX2 = X_true[X_true.Year == 2009]['Longitude'].values
+plotY2 = X_true[X_true.Year == 2009]['Latitude'].values
 
 
-#plotX4 = X_true[X_true.Year == '2013']['Longitude'].values
-#plotY4 = X_true[X_true.Year == '2013']['Latitude'].values
-#plot.set_ylim(41.6,42.05)
-#plot.set_xlim(-87.95,-87.5)
-#fig = plot.get_figure()
-#fig.savefig('scatter1.png')
-=======
-# plot.set_ylim(41.6,42.05)
-# plot.set_xlim(-87.95,-87.5)
-# fig = plot.get_figure()
-# fig.savefig('scatter1.png')
->>>>>>> 495bf513adcebe113af932029e5dc9aa67147ecc
+plotX3 = X_true[X_true.Year == 2011]['Longitude'].values
+plotY3 = X_true[X_true.Year == 2011]['Latitude'].values
+
+plotX4 = X_true[X_true.Year == 2013]['Longitude'].values
+plotY4 = X_true[X_true.Year == 2013]['Latitude'].values
+
 
 # llcrnrlat,llcrnrlon,urcrnrlat,urcrnrlon
 # are the lat/lon values of the lower left and upper right corners
@@ -88,59 +60,48 @@ m.drawcoastlines()
 # draw a boundary around the map, fill the background.
 # this background will end up being the ocean color, since
 # the continents will be drawn on top.
-plotX, plotY = m(plotX1, plotY1)
-m.drawmapboundary(fill_color='aqua')
+plotX1, plotY1 = m(plotX1, plotY1)
+plotX2, plotY2 = m(plotX2, plotY2)
+plotX3, plotY3 = m(plotX3, plotY3)
+plotX4, plotY4 = m(plotX4, plotY4)
+m.drawmapboundary(fill_color='blue')
 # fill continents, set lake color same as ocean color.
-<<<<<<< HEAD
 m.fillcontinents(color='lightgrey',lake_color='blue', zorder=0)
 m.drawparallels(np.arange(41.5, 42.5, .1))
 m.drawmeridians(np.arange(-88., -87.3, .1))
-=======
-m.fillcontinents(color='lightgrey', lake_color='blue', zorder=0)
->>>>>>> 495bf513adcebe113af932029e5dc9aa67147ecc
-m.scatter(plotX, plotY, c='red', marker="o", alpha=.8)
+m.scatter(plotX1, plotY1, c='yellow', marker="o", alpha=1)
+m.scatter(plotX2, plotY2, c='purple', marker="o", alpha=1)
+m.scatter(plotX3, plotY3, c='green', marker="o", alpha=1)
+m.scatter(plotX4, plotY4, c='red', marker="o", alpha=1)
 fig = plot.get_figure()
 fig.savefig('map.png')
 
-<<<<<<< HEAD
 print("Here")
-checks = X_train[['Week', 'Year', 'WnvPresent']].groupby(['Week', 'Year']).count().reset_index()
-weekly_postives = X_train.groupby(['Year', 'Week', 'Species']).sum().reset_index()
-=======
-checks = X_test[['Week', 'Year', 'WnvPresent']].groupby(['Week', 'Year']).count().reset_index()
-weekly_postives = X_test.groupby(['Year', 'Week', 'Species']).sum().reset_index()
->>>>>>> 495bf513adcebe113af932029e5dc9aa67147ecc
-weekly_postives_species = weekly_postives.set_index(['Year', 'Week', 'Species']).unstack()
-weekly_postives_species.columns = weekly_postives_species.columns.get_level_values(1)
-weekly_postives_species['total_positives'] = weekly_postives_species.sum(axis=1)
-weekly_postives_species = weekly_postives_species.reset_index().fillna(0)
 
-<<<<<<< HEAD
+m = Basemap(projection='merc', llcrnrlat=41.599501, urcrnrlat=42.109914, llcrnrlon=-88.034279, urcrnrlon=-87.296822,
+            lat_ts=20, resolution='f')
+m.drawcoastlines()
+# draw coastlines.
+# draw a boundary around the map, fill the background.
+# this background will end up being the ocean color, since
+m.drawparallels(np.arange(41.5, 42.5, .1))
+m.drawmeridians(np.arange(-88., -87.3, .1))
+m.pcolormesh(plotX, plotY, interpolation='none', cmap='Oranges')
+fig = plot.get_figure()
+fig.savefig('heatmap.png')
 
-weekly_postives_weeks = weekly_postives.set_index(['Year', 'Week']).unstack()
-weekly_postives_weeks.columns = weekly_postives_species.columns.get_level_values(1)
-weekly_postives_species['total_positives'] = weekly_postives_weeks.sum(axis=1)
+print("Here")
 
-=======
->>>>>>> 495bf513adcebe113af932029e5dc9aa67147ecc
-weekly_checks = checks.groupby(['Year', 'Week']).sum()
-weekly_checks.columns = ['checks']
-weekly_checks = weekly_checks.reset_index()
-weekly_checks['positive'] = weekly_postives_species['total_positives']
-<<<<<<< HEAD
-weekly_checks['trap_infection_rate'] = weekly_postives_weeks
-weekly_checks_years = weekly_checks.pivot(index='Week', columns='Year', values='trap_infection_rate')
+X_2007 = X_true[X_true.Year == 2007]
+X_2009 = X_true[X_true.Year == 2009]
+X_2011 = X_true[X_true.Year == 2011]
+X_2013 = X_true[X_true.Year == 2013]
 
-ax = weekly_checks_years.interpolate().plot(title='Trap infection rate', figsize=(10, 6))
-ax.set_ylabel('Number of traps infected')
-fig = ax.get_figure()
-fig.savefig('positive_trap_rate.png')
-
-=======
-weekly_checks['trap_infection_rate'] = weekly_checks['positive'] / weekly_checks['checks'] * 100
-weekly_checks_years = weekly_checks.pivot(index='Week', columns='Year', values='trap_infection_rate')
-
-ax = weekly_checks_years.interpolate().plot(title='Trap infection rate', figsize=(10, 6))
-ax.set_ylabel('Percentage traps infected')
-plt.savefig('positive_trap_rate.png')
->>>>>>> 495bf513adcebe113af932029e5dc9aa67147ecc
+weekly = {}
+weekly['2007'] = X_2007.groupby("Week").sum().ix[:,['WnvPresent']]
+weekly['2009'] = X_2009.groupby("Week").sum().ix[:,['WnvPresent']]
+weekly['2011'] = X_2011.groupby("Week").sum().ix[:,['WnvPresent']]
+weekly['2013'] = X_2013.groupby("Week").sum().ix[:,['WnvPresent']]
+#ax = weekly_checks_years.interpolate().plot(title='Trap infection rate', figsize=(10, 6))
+#ax.set_ylabel('Percentage traps infected')
+#plt.savefig('positive_trap_rate.png')
