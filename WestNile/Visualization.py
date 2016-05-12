@@ -18,9 +18,6 @@ import numpy as np
 import csv
 import pandas as pd
 from sklearn import metrics
-from sklearn.cross_validation import KFold
-from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.gaussian_process import GaussianProcess
 from sklearn.linear_model import LinearRegression
 import matplotlib as plt
@@ -44,6 +41,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn import tree
 from sklearn.metrics import confusion_matrix
+from sklearn.cross_validation import train_test_split
 
 def preProcessData():
     # Load dataset
@@ -329,6 +327,31 @@ def dec(X_train, y_train):
     clf.fit(X_train, y_train)
     return clf
 
+def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Blues):
+    print(cm)
+
+
+def accuracies(cm):
+    totals = np.sum(cm, 1)
+    no_acc = cm[0, 0] / totals[0]
+    yes_acc = cm[1, 1] / totals[1]
+    print("No Affair Acc: {0}".format(no_acc))
+    print("Affair Acc: {0}".format(yes_acc))
+    print("Avg Acc: {0}".format((no_acc + yes_acc)/2))
+    
+
+def run_model(model):
+    clf = model
+    clf.fit(X_train, y_train)
+    predictions = clf.predict(X_test)
+    cm = confusion_matrix(y_test, predictions)
+    plot_confusion_matrix(cm)
+    accuracies(cm)
+
+X_train, y_train, X_test, sample = preProcessData()
+X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.33, random_state=42)
+clf = logistic1(X_train, y_train)
+run_model(clf)
 #rf = RandomForestClassifier(n_jobs=-1, min_samples_split = 1)
 #parameters = {'n_estimators':[500, 1000, 2000]}
 #clf = grid_search.GridSearchCV(rf, parameters, cv=5)
@@ -342,22 +365,22 @@ def dec(X_train, y_train):
 #from sklearn.linear_model import LogisticRegression
 #rand = RandomTreesEmbedding(n_jobs=-1, n_estimators=1000, min_samples_split=1)
 
-clf1 = GradientBoostingClassifier(learning_rate = .075, n_estimators=1250, max_features = 2, loss = 'deviance', max_depth = 1, subsample = 1, )
+clf1 = GradientBoostingClassifier(learning_rate = .1, n_estimators=1250, max_features = 2, loss = 'deviance', max_depth = 1, subsample = 1, )
 clf1.fit(X_train, y_train)
 
-clf2 = GradientBoostingClassifier(learning_rate = .075, n_estimators=1250, max_features = 4, loss = 'deviance', max_depth = 3, subsample = 1, )
+clf2 = GradientBoostingClassifier(learning_rate = .1, n_estimators=1250, max_features = 4, loss = 'deviance', max_depth = 3, subsample = 1, )
 clf2.fit(X_train, y_train)
 
-clf3 = GradientBoostingClassifier(learning_rate = .075, n_estimators=1250, max_features = 4, loss = 'deviance', max_depth = 2, subsample = 1, )
+clf3 = GradientBoostingClassifier(learning_rate = .1, n_estimators=1250, max_features = 4, loss = 'deviance', max_depth = 2, subsample = 1, )
 clf3.fit(X_train, y_train)
 
-clf4 = GradientBoostingClassifier(learning_rate = .075, n_estimators=1250, max_features = 8, loss = 'deviance', max_depth = 7, subsample = 1, )
+clf4 = GradientBoostingClassifier(learning_rate = .1, n_estimators=1250, max_features = 8, loss = 'deviance', max_depth = 7, subsample = 1, )
 clf4.fit(X_train, y_train)
 
-clf5 = GradientBoostingClassifier(learning_rate = .075, n_estimators=1250, max_features = 16, loss = 'deviance', max_depth = 15, subsample = 1, )
+clf5 = GradientBoostingClassifier(learning_rate = .1, n_estimators=1250, max_features = 16, loss = 'deviance', max_depth = 15, subsample = 1, )
 clf5.fit(X_train, y_train)
 
-clf6 = GradientBoostingClassifier(learning_rate = .075, n_estimators=1250, max_features = 30, loss = 'deviance', max_depth = 29, subsample = 1, )
+clf6 = GradientBoostingClassifier(learning_rate = .1, n_estimators=1250, max_features = 30, loss = 'deviance', max_depth = 29, subsample = 1, )
 clf6.fit(X_train, y_train)
 #.606
 
